@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mantra Block - Popup</title>
+    <link rel="stylesheet" href="styles/popup.css" />
+  </head>
+  <body>
+    <div class="popup-header">
+      <h1>📍 Mantra Block</h1>
+    </div>
+
+    <div class="popup-container">
+      <div class="section">
+        <div class="section-title">Status</div>
+        <div id="status" class="quick-status active">Extension active</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Quick Actions</div>
+        <p class="info-text">Manage your mantras and blocked sites through the settings page.</p>
+        <div class="button-group">
+          <button id="openSettings" class="btn-primary">Open Settings</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Info</div>
+        <p class="info-text">
+          Mantra Block helps you stay focused by blocking distracting websites and reminding you of
+          your personal mantras. Configure your blocked sites and mantras in Settings.
+        </p>
+      </div>
+    </div>
+
+    <script src="utils/storage.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

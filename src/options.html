@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mantra Block - Settings</title>
+    <link rel="stylesheet" href="styles/options.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🎯 Mantra Block Settings</h1>
+        <p>Customize your mantras and blocked websites</p>
+      </header>
+
+      <div id="statusMessage" class="status-message"></div>
+
+      <section class="section">
+        <h2 class="section-title">Your Mantras</h2>
+        <p class="section-subtitle">
+          Enter your personal mantras below. When you access a blocked website, you'll need to enter
+          one of these mantras to continue. Start by entering at least one mantra.
+        </p>
+
+        <div class="form-group">
+          <div class="add-input-group">
+            <input
+              type="text"
+              id="mantraInput"
+              placeholder="Enter a new mantra..."
+              maxlength="200"
+            />
+            <button id="addMantraBtn" class="btn-primary">Add Mantra</button>
+          </div>
+        </div>
+
+        <div id="mantrasList" class="list-container"></div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Blocked Websites</h2>
+        <p class="section-subtitle">Add or remove websites that should be blocked by this extension.</p>
+
+        <div class="form-group">
+          <div class="add-input-group">
+            <input
+              type="text"
+              id="blacklistInput"
+              placeholder="Enter domain (e.g., facebook.com)..."
+              maxlength="200"
+            />
+            <button id="addBlacklistBtn" class="btn-primary">Add Site</button>
+          </div>
+        </div>
+
+        <div id="blacklistList" class="list-container"></div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Reset Extension</h2>
+        <p class="section-subtitle">Restore default mantras and blocked websites.</p>
+        <div class="button-group">
+          <button id="resetBtn" class="btn-secondary">Reset to Defaults</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="utils/storage.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
