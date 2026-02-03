@@ -1,0 +1,37 @@
+<div id="mantra-block-overlay">
+  <div class="mantra-block-card">
+    <div class="mantra-block-header">
+      <h1>Mantra Block</h1>
+      <p class="mantra-block-subtitle">Take a moment for yourself</p>
+    </div>
+
+    <div class="mantra-block-content">
+      <p class="mantra-block-message">This site is blocked. Before you continue, enter one of your mantras:</p>
+
+      <form id="mantra-form" class="mantra-block-form">
+        <div class="form-group">
+          <label for="mantra-input">Your Mantra:</label>
+          <textarea
+            id="mantra-input"
+            class="mantra-input"
+            placeholder="Enter your mantra here..."
+            rows="3"
+            spellcheck="true"
+          ></textarea>
+          <small class="form-hint">You cannot paste. Please type your mantra to continue.</small>
+        </div>
+
+        <div class="mantra-suggestions">
+          <label>Or select one:</label>
+          <div class="suggestions-list">
+            <!-- SUGGESTIONS -->
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Continue</button>
+      </form>
+
+      <a href="#" id="mantra-settings" class="settings-link">Edit Mantras & Blacklist</a>
+    </div>
+  </div>
+</div>

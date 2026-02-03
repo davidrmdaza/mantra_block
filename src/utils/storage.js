@@ -125,3 +125,23 @@ async function isBlocked(url) {
     return false;
   }
 }
+
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'getMantras') {
+    getMantras().then(mantras => {
+      sendResponse({ mantras });
+    });
+    return true; // Indicates we'll send response asynchronously
+  } else if (request.action === 'isBlocked') {
+    isBlocked(request.url).then(blocked => {
+      sendResponse({ blocked });
+    });
+    return true; // Indicates we'll send response asynchronously
+  } else if (request.action === 'getBlacklist') {
+    getBlacklist().then(blacklist => {
+      sendResponse({ blacklist });
+    });
+    return true; // Indicates we'll send response asynchronously
+  }
+});

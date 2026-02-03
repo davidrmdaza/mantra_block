@@ -3,14 +3,13 @@
  * Handles initialization and tab navigation interception
  */
 
+importScripts('./utils/storage.js');
 // Initialize storage on extension install/startup
 chrome.runtime.onInstalled.addListener(async () => {
   await initializeStorage();
   console.log('Mantra Block: Extension initialized');
 });
 
-// Initialize storage when service worker starts
-initializeStorage();
 
 /**
  * Listen for tab updates to check if the user is accessing a blocked site
