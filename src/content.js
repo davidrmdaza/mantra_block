@@ -51,7 +51,7 @@ async function displayBlockOverlay() {
   overlayActive = true;
 
   const mantras = await chrome.runtime.sendMessage({ action: 'getMantras' }).then(response => response.mantras);  
-  
+  const suggestedMantra = mantras[Math.floor(Math.random() * mantras.length)] || '';
   // Ensure overlay HTML/CSS are loaded
   try {
     await ensureOverlayResources();
@@ -69,15 +69,10 @@ async function displayBlockOverlay() {
   document.documentElement.appendChild(host);
   console.debug('Injected overlay host and shadow root into document.');
 
-  // Populate suggestions list from fetched mantras
-  const suggestionsList = shadow.querySelector('.suggestions-list');
-  if (suggestionsList) {
-    suggestionsList.innerHTML = mantras.map((mantra) => `
-      <button type="button" class="suggestion-btn" data-mantra="${mantra}">${mantra}</button>
-    `).join('');
-    console.debug('Populated suggestions list with', mantras.length, 'items');
-  } else {
-    console.warn('Suggestions list element not found in overlay template.');
+  const inputField = shadow.querySelector('#mantra-input');
+  if (inputField) {
+    inputField.focus();
+    inputField.placeholder = suggestedMantra;
   }
 
   // Prevent scrolling
@@ -140,6 +135,11 @@ function setupFormListeners(overlay, mantras) {
   // Form submission
   if (form) {
     form.addEventListener('submit', (e) => {
+      if(mantras.length === 0) {
+        alert('No mantras are set up. Please add mantras in the extension settings to continue.');
+        return;
+        //TODO: direct to settings
+      }
       e.preventDefault();
 
       if (!input) {
@@ -204,9 +204,8 @@ function setupFormListeners(overlay, mantras) {
 
   // Settings link
   if (settingsLink) {
-    settingsLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      chrome.runtime.openOptionsPage();
+    settingsLink.addEventListener('click', async (e) => {
+      await chrome.runtime.sendMessage({ action: 'openSettings' });
     });
   }
 

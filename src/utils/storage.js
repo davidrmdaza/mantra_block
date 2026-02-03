@@ -14,11 +14,11 @@ const DEFAULT_BLACKLIST = [
 ];
 
 const DEFAULT_MANTRAS = [
-  'I am focused on my goals.',
-  'This moment is precious.',
-  'I choose productivity.',
-  'My time is valuable.',
-  'I am in control of my actions.'
+  'I am focused on my goals',
+  'This moment is precious',
+  'I choose productivity',
+  'My time is valuable',
+  'I am in control of my actions'
 ];
 
 /**

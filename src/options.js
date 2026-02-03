@@ -173,3 +173,5 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+//TODO: If there is at least one mantra, user must enter mantra to be able to update settings

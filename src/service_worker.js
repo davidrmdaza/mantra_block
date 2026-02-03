@@ -30,10 +30,18 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   }
 });
 
+
 /**
- * Listen for messages from content script
+ * Listen for messages from other extension contexts
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // Support both { action: 'openSettings' } and legacy { message: 'openSettings' }
+  if (request.action === 'openSettings' || request.message === 'openSettings') {
+    chrome.runtime.openOptionsPage();
+    sendResponse({ status: 'ok' });
+    return true;
+  }
+
   if (request.action === 'checkBlocked') {
     isBlocked(request.url).then(blocked => {
       sendResponse({ blocked });
