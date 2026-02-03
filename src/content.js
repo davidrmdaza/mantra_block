@@ -5,13 +5,39 @@
 
 // Load overlay HTML + CSS when needed (cached on window)
 async function ensureOverlayResources() {
-  if (window.__mantraOverlayTemplate && window.__mantraOverlayCss) return;
-  const [html, css] = await Promise.all([
-    fetch(chrome.runtime.getURL('src/overlay.html')).then(r => r.text()),
-    fetch(chrome.runtime.getURL('src/styles/overlay.css')).then(r => r.text())
-  ]);
-  window.__mantraOverlayTemplate = html;
-  window.__mantraOverlayCss = css;
+  if (window.__mantraOverlayTemplate && window.__mantraOverlayCss) {
+    console.debug('Overlay resources fetched from cache.');
+    return;
+  }
+
+  const htmlUrl = chrome.runtime.getURL('src/overlay.html');
+  const cssUrl = chrome.runtime.getURL('src/styles/overlay.css');
+  console.debug('Fetching overlay resources', { htmlUrl, cssUrl });
+
+  try {
+    const [htmlResp, cssResp] = await Promise.all([fetch(htmlUrl), fetch(cssUrl)]);
+
+    if (!htmlResp.ok) {
+      console.error('Failed to fetch overlay HTML', htmlUrl, htmlResp.status, htmlResp.statusText);
+      throw new Error('Failed to load overlay HTML');
+    }
+    if (!cssResp.ok) {
+      console.error('Failed to fetch overlay CSS', cssUrl, cssResp.status, cssResp.statusText);
+      throw new Error('Failed to load overlay CSS');
+    }
+
+    const [html, css] = await Promise.all([htmlResp.text(), cssResp.text()]);
+
+    if (!html || !html.trim().length) console.warn('Overlay HTML is empty');
+    if (!css || !css.trim().length) console.warn('Overlay CSS is empty');
+
+    window.__mantraOverlayTemplate = html;
+    window.__mantraOverlayCss = css;
+    console.debug('Overlay resources loaded and cached.');
+  } catch (err) {
+    console.error('Error loading overlay resources', err);
+    throw err;
+  }
 }
 
 
@@ -27,7 +53,13 @@ async function displayBlockOverlay() {
   const mantras = await chrome.runtime.sendMessage({ action: 'getMantras' }).then(response => response.mantras);  
   
   // Ensure overlay HTML/CSS are loaded
-  await ensureOverlayResources();
+  try {
+    await ensureOverlayResources();
+  } catch (err) {
+    console.error('Could not load overlay resources, aborting overlay display.', err);
+    overlayActive = false;
+    return;
+  }
 
   // Create host and Shadow DOM to isolate styles from page
   const host = document.createElement('div');
@@ -35,6 +67,7 @@ async function displayBlockOverlay() {
   const shadow = host.attachShadow({ mode: 'open' });
   shadow.innerHTML = `<style>${window.__mantraOverlayCss}</style>${window.__mantraOverlayTemplate}`;
   document.documentElement.appendChild(host);
+  console.debug('Injected overlay host and shadow root into document.');
 
   // Populate suggestions list from fetched mantras
   const suggestionsList = shadow.querySelector('.suggestions-list');
@@ -42,11 +75,19 @@ async function displayBlockOverlay() {
     suggestionsList.innerHTML = mantras.map((mantra) => `
       <button type="button" class="suggestion-btn" data-mantra="${mantra}">${mantra}</button>
     `).join('');
+    console.debug('Populated suggestions list with', mantras.length, 'items');
+  } else {
+    console.warn('Suggestions list element not found in overlay template.');
   }
 
   // Prevent scrolling
-  // document.documentElement?.style.overflow = 'hidden';
-  // document.body?.style.overflow = 'hidden';
+  try {
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    console.debug('Page scrolling disabled while overlay is active.');
+  } catch (err) {
+    console.warn('Unable to set overflow styles to disable scrolling', err);
+  }
 
   // Set up event listeners
   setupFormListeners(shadow, mantras);
@@ -56,57 +97,122 @@ async function displayBlockOverlay() {
  * Set up form event listeners
  */
 function setupFormListeners(overlay, mantras) {
+  if (!overlay) {
+    console.warn('Overlay root missing — cannot set up form listeners.');
+    return;
+  }
+
   const form = overlay.querySelector('#mantra-form');
   const input = overlay.querySelector('#mantra-input');
-  const suggestionBtns = overlay.querySelectorAll('.suggestion-btn');
   const settingsLink = overlay.querySelector('#mantra-settings');
-  
-  // Prevent pasting
-  input.addEventListener('paste', (e) => {
-    e.preventDefault();
-  });
-  
-  // Suggestion buttons
-  suggestionBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
+
+  // Guard against missing elements
+  if (!form) {
+    console.warn('Mantra form not found in overlay.');
+  }
+  if (!input) {
+    console.warn('Mantra input not found in overlay.');
+  }
+
+  // Prevent pasting if input exists
+  if (input) {
+    input.addEventListener('paste', (e) => {
       e.preventDefault();
-      const mantra = btn.getAttribute('data-mantra');
-      input.value = mantra;
-      form.dispatchEvent(new Event('submit'));
     });
+  }
+
+  // Use event delegation for suggestion buttons (handles dynamic content)
+  overlay.addEventListener('click', (e) => {
+    const btn = e.target.closest('.suggestion-btn');
+    if (!btn) return;
+    e.preventDefault();
+    const mantra = btn.getAttribute('data-mantra') || btn.dataset?.mantra;
+    if (input) input.value = mantra;
+
+    // Use requestSubmit when available to trigger native validation/submit
+    if (form) {
+      if (typeof form.requestSubmit === 'function') form.requestSubmit();
+      else form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    }
   });
-  
+  console.debug('Attached delegated click handler for .suggestion-btn on overlay root.');
+
   // Form submission
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const enteredMantra = input.value.trim();
-    
-    if (enteredMantra.length === 0) {
-      alert('Please enter or select a mantra to continue.');
-      return;
-    }
-    
-    // Check if entered mantra matches one of the user's mantras
-    const mantraMatch = mantras.some(m =>
-      m.toLowerCase() === enteredMantra.toLowerCase()
-    );
-    
-    if (mantraMatch) {
-      removeBlockOverlay();
-    } else {
-      alert('That mantra is not recognized. Please enter one of your mantras.');
-      input.value = '';
-      input.focus();
-    }
-  });
-  
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (!input) {
+        console.warn('Submit attempted but input is missing.');
+        return;
+      }
+
+      const enteredMantra = input.value.trim();
+
+      if (enteredMantra.length === 0) {
+        alert('Please enter or select a mantra to continue.');
+        return;
+      }
+
+      // Check if entered mantra matches one of the user's mantras
+      const mantraMatch = mantras.some(m =>
+        m.toLowerCase() === enteredMantra.toLowerCase()
+      );
+
+      if (mantraMatch) {
+        removeBlockOverlay();
+      } else {
+        alert('That mantra is not recognized. Please enter one of your mantras.');
+        input.value = '';
+        input.focus();
+      }
+    });
+    console.debug('Attached form submit listener.');
+  }
+
+  // Form submission
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (!input) {
+        console.warn('Submit attempted but input is missing.');
+        return;
+      }
+
+      const enteredMantra = input.value.trim();
+
+      if (enteredMantra.length === 0) {
+        alert('Please enter or select a mantra to continue.');
+        return;
+      }
+
+      // Check if entered mantra matches one of the user's mantras
+      const mantraMatch = mantras.some(m =>
+        m.toLowerCase() === enteredMantra.toLowerCase()
+      );
+
+      if (mantraMatch) {
+        removeBlockOverlay();
+      } else {
+        alert('That mantra is not recognized. Please enter one of your mantras.');
+        input.value = '';
+        input.focus();
+      }
+    });
+  }
+
   // Settings link
-  settingsLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    chrome.runtime.openOptionsPage();
-  });
-  
-  input.focus();
+  if (settingsLink) {
+    settingsLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.runtime.openOptionsPage();
+    });
+  }
+
+  if (input) {
+    try { input.focus(); } catch (err) { /* ignore focus errors */ }
+  }
 }
 
 /**
@@ -119,6 +225,9 @@ function removeBlockOverlay() {
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
     overlayActive = false;
+    console.debug('Overlay removed and page scrolling restored.');
+  } else {
+    console.debug('removeBlockOverlay called but overlay host not found.');
   }
 }
 
