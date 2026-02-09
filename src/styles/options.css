@@ -32,7 +32,7 @@ header {
 
 header h1 {
   font-size: 36px;
-  color: #4b0082;
+  color: #254441;
   margin-bottom: 8px;
 }
 
@@ -52,10 +52,10 @@ header p {
 .section-title {
   font-size: 20px;
   font-weight: 700;
-  color: #4b0082;
+  color: #254441;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 3px solid #e8d4ff;
+  border-bottom: 3px solid #B2B09B;
 }
 
 .section-subtitle {
@@ -98,7 +98,7 @@ input[type='text']:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: #4b0082;
+  border-color: #254441;
   background-color: #f9f7ff;
 }
 
@@ -167,8 +167,8 @@ textarea {
 
 .add-input-group button {
   padding: 10px 16px;
-  background: linear-gradient(135deg, #4b0082 0%, #000080 100%);
-  color: white;
+  background: #254441;
+  color: whitesmoke;
   border: none;
   border-radius: 6px;
   font-weight: 600;
@@ -200,8 +200,8 @@ button.btn-secondary {
 }
 
 button.btn-primary {
-  background: linear-gradient(135deg, #4b0082 0%, #000080 100%);
-  color: white;
+  background: #254441;
+  color: whitesmoke;
   flex: 1;
 }
 

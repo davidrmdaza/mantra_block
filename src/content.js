@@ -150,7 +150,7 @@ function setupFormListeners(overlay, mantras) {
       const enteredMantra = input.value.trim();
 
       if (enteredMantra.length === 0) {
-        alert('Please enter or select a mantra to continue.');
+        alert('Please enter a mantra to continue.');
         return;
       }
 
@@ -165,41 +165,10 @@ function setupFormListeners(overlay, mantras) {
         alert('That mantra is not recognized. Please enter one of your mantras.');
         input.value = '';
         input.focus();
+        return;
       }
     });
     console.debug('Attached form submit listener.');
-  }
-
-  // Form submission
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-
-      if (!input) {
-        console.warn('Submit attempted but input is missing.');
-        return;
-      }
-
-      const enteredMantra = input.value.trim();
-
-      if (enteredMantra.length === 0) {
-        alert('Please enter or select a mantra to continue.');
-        return;
-      }
-
-      // Check if entered mantra matches one of the user's mantras
-      const mantraMatch = mantras.some(m =>
-        m.toLowerCase() === enteredMantra.toLowerCase()
-      );
-
-      if (mantraMatch) {
-        removeBlockOverlay();
-      } else {
-        alert('That mantra is not recognized. Please enter one of your mantras.');
-        input.value = '';
-        input.focus();
-      }
-    });
   }
 
   // Settings link
