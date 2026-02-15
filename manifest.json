@@ -5,7 +5,6 @@
   "description": "Block distracting websites and recenter yourself with personal mantras",
   "permissions": [
     "storage",
-    "webRequest",
     "tabs"
   ],
   "host_permissions": [
