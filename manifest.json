@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mantra Block - Website Blocker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Block distracting websites and recenter yourself with personal mantras",
   "permissions": [
     "storage",
