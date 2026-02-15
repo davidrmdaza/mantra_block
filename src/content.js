@@ -47,8 +47,14 @@ let overlayActive = false;
  * Create and display the blocking overlay
  */
 async function displayBlockOverlay() {
+  if (isTimerActive()) {
+    console.debug('Timer is active, skipping overlay display.');
+    return;
+  }
+
   if (overlayActive) return;
   overlayActive = true;
+
 
   const mantras = await chrome.runtime.sendMessage({ action: 'getMantras' }).then(response => response.mantras);  
   const suggestedMantra = mantras[Math.floor(Math.random() * mantras.length)] || '';
@@ -114,6 +120,11 @@ function setupFormListeners(overlay, mantras) {
     input.addEventListener('paste', (e) => {
       e.preventDefault();
     });
+
+    // Block keyboard shortcuts while typing mantra
+    input.addEventListener('keydown', (e) => {
+      e.stopPropagation(); // Prevent event from reaching page
+    });
   }
 
   // Use event delegation for suggestion buttons (handles dynamic content)
@@ -160,6 +171,11 @@ function setupFormListeners(overlay, mantras) {
       );
 
       if (mantraMatch) {
+        // Start timer and remove overlay
+        startTimer(() => {
+          console.log('[MANTRA] Timer expired, re-blocking site');
+          displayBlockOverlay();
+        });
         removeBlockOverlay();
       } else {
         alert('That mantra is not recognized. Please enter one of your mantras.');
